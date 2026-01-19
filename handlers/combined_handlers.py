@@ -53,9 +53,9 @@ async def cmd_today_all(message: Message):
             max_results=50
         )
         
-        # Get ALL tasks and filter locally
+        # Get ALL tasks (including completed) and filter locally
         tasks_client = await get_tasks_client()
-        all_tasks = await tasks_client.list_tasks()
+        all_tasks = await tasks_client.list_tasks(show_completed=True)
         
         # Filter tasks for today
         today_tasks = []
@@ -66,6 +66,7 @@ async def cmd_today_all(message: Message):
                     # Parse due date (format: 2026-01-17T00:00:00.000Z)
                     due_dt = datetime.fromisoformat(due.replace('Z', '+00:00'))
                     due_date = due_dt.date()
+                    logger.info(f"Task '{task.get('title', 'Untitled')}' due: {due_date}, today: {now.date()}, match: {due_date == now.date()}")
                     if due_date == now.date():
                         today_tasks.append(task)
                 except Exception as e:
@@ -102,9 +103,9 @@ async def cmd_week_all(message: Message):
             max_results=100
         )
         
-        # Get ALL tasks and filter locally
+        # Get ALL tasks (including completed) and filter locally
         tasks_client = await get_tasks_client()
-        all_tasks = await tasks_client.list_tasks()
+        all_tasks = await tasks_client.list_tasks(show_completed=True)
         
         # Filter tasks for this week
         week_tasks = []

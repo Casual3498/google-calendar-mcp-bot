@@ -56,7 +56,7 @@ class GoogleTasksClient:
             # Don't raise - just log the error and continue without Tasks support
             self.service = None
     
-    def _list_tasks_sync(self, due_min: Optional[str] = None, due_max: Optional[str] = None) -> List[Dict[str, Any]]:
+    def _list_tasks_sync(self, due_min: Optional[str] = None, due_max: Optional[str] = None, show_completed: bool = False) -> List[Dict[str, Any]]:
         """Synchronous version of list_tasks - runs in thread pool."""
         if not self.service:
             logger.warning("Tasks service not initialized")
@@ -75,7 +75,7 @@ class GoogleTasksClient:
                 # Get tasks from this list
                 params = {
                     'tasklist': list_id,
-                    'showCompleted': False,  # Only show incomplete tasks
+                    'showCompleted': show_completed,
                     'showHidden': False
                 }
                 
@@ -106,18 +106,19 @@ class GoogleTasksClient:
             logger.error(f"Error listing tasks: {e}")
             return []
     
-    async def list_tasks(self, due_min: Optional[str] = None, due_max: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def list_tasks(self, due_min: Optional[str] = None, due_max: Optional[str] = None, show_completed: bool = False) -> List[Dict[str, Any]]:
         """List tasks from all task lists.
         
         Args:
             due_min: Minimum due date in RFC3339 format
             due_max: Maximum due date in RFC3339 format
+            show_completed: Include completed tasks (default: False)
             
         Returns:
             List of task dictionaries
         """
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(_executor, self._list_tasks_sync, due_min, due_max)
+        return await loop.run_in_executor(_executor, self._list_tasks_sync, due_min, due_max, show_completed)
     
     async def get_tasks_for_date(self, date_str: str) -> List[Dict[str, Any]]:
         """Get tasks due on a specific date.
