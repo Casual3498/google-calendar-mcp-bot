@@ -1,0 +1,35 @@
+services:
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: google-calendar-bot
+    restart: unless-stopped
+    
+    # Загрузка переменных окружения из .env
+    env_file:
+      - .env
+    
+    # Монтирование директорий
+    volumes:
+      # Credentials (read-only для безопасности)
+      # Должен содержать google_credentials.json и token.json
+      - ./credentials:/app/credentials:ro
+      
+      # Logs (read-write для записи логов)
+      - ./logs:/app/logs
+    
+    # Переменные окружения
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Moscow  # Измените на ваш часовой пояс
+      - GOOGLE_CALENDAR_CREDENTIALS_PATH=/app/credentials/google_credentials.json
+      - GOOGLE_OAUTH_CREDENTIALS=/app/credentials/google_credentials.json  # Для MCP сервера
+    
+    # Сеть
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge
